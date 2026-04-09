@@ -129,5 +129,3 @@ cache_final = pd.concat([cache, df_novos], ignore_index=True)
 cache_final.drop_duplicates(subset=["CNPJ"], inplace=True)
 
 cache_final.to_csv(ARQUIVO_CACHE, index=False, encoding="utf-8-sig")
-
-print("✅ Finalizado com sucesso!")
