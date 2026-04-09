@@ -131,4 +131,3 @@ cache_final.drop_duplicates(subset=["CNPJ"], inplace=True)
 cache_final.to_csv(ARQUIVO_CACHE, index=False, encoding="utf-8-sig")
 
 print("✅ Finalizado com sucesso!")
-input("Pressione ENTER para sair...")
