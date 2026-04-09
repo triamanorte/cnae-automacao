@@ -1,5 +1,8 @@
 name: Atualizar CNAE
 
+permissions:
+  contents: write
+
 on:
   schedule:
     - cron: '0 10 * * *'  # 07:00 Brasil
@@ -18,17 +21,19 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Instalar bibliotecas
+      - name: Instalar dependências
         run: |
           pip install pandas requests openpyxl
 
-      - name: Rodar script
+      - name: Executar script
         run: python script_cnae.py
 
-      - name: Salvar alterações
+      - name: Salvar alterações no repositório
         run: |
           git config --global user.name "bot"
           git config --global user.email "bot@github.com"
+          
+          git pull --rebase
           git add .
           git commit -m "Atualização automática CNAE" || echo "Sem mudanças"
           git push
