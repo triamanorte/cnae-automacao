@@ -33,12 +33,12 @@ jobs:
           git config --global user.name "bot"
           git config --global user.email "bot@github.com"
 
-          # sempre sincroniza com remoto (sem conflito)
+          # 🔥 CORREÇÃO: sincroniza ANTES (não apaga arquivo gerado)
           git fetch origin main
           git checkout main
-          git reset --hard origin/main
+          git pull origin main --rebase
 
-          # adiciona arquivos
+          # adiciona arquivos gerados
           git add .
 
           # verifica se houve mudança
@@ -50,5 +50,5 @@ jobs:
           # commit
           git commit -m "Atualização automática CNAE"
 
-          # push forçado seguro
-          git push origin main --force
+          # push normal (sem force)
+          git push origin main
