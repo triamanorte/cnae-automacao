@@ -1,0 +1,34 @@
+name: Atualizar CNAE
+
+on:
+  schedule:
+    - cron: '0 10 * * *'  # 07:00 Brasil
+  workflow_dispatch:
+
+jobs:
+  executar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar bibliotecas
+        run: |
+          pip install pandas requests openpyxl
+
+      - name: Rodar script
+        run: python script_cnae.py
+
+      - name: Salvar alterações
+        run: |
+          git config --global user.name "bot"
+          git config --global user.email "bot@github.com"
+          git add .
+          git commit -m "Atualização automática CNAE" || echo "Sem mudanças"
+          git push
