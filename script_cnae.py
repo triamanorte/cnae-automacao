@@ -1,6 +1,5 @@
 import requests
 import pandas as pd
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import time
 from io import BytesIO
@@ -12,7 +11,8 @@ URL_EXCEL = "https://triamanortetratores-my.sharepoint.com/:x:/g/personal/rodrig
 
 ARQUIVO_CACHE = "cache_cnae.csv"
 ARQUIVO_ERROS = "erros_cnae.csv"
-MAX_WORKERS = 5
+
+DELAY = 30  # ⏳ 30 segundos entre cada consulta
 
 # ==============================
 # FUNÇÕES
@@ -62,7 +62,7 @@ def consulta_cnpj(cnpj):
         else:
             return {"CNPJ": cnpj, "STATUS": f"HTTP_{r.status_code}"}
 
-    except:
+    except Exception as e:
         return {"CNPJ": cnpj, "STATUS": "ERRO"}
 
 
@@ -97,7 +97,7 @@ total = len(novos)
 print(f"🔎 Total de novos CNPJs: {total}")
 
 # ==============================
-# PROCESSAMENTO
+# PROCESSAMENTO (COM DELAY)
 # ==============================
 
 inicio = time.time()
@@ -107,34 +107,37 @@ erro = 0
 
 resultados = []
 
-if total > 0:
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = {executor.submit(consulta_cnpj, cnpj): cnpj for cnpj in novos["CNPJ_LIMPO"]}
+for cnpj in novos["CNPJ_LIMPO"]:
+    print(f"\n🔍 Consultando CNPJ: {cnpj}")
 
-        for future in as_completed(futures):
-            resultado = future.result()
-            resultados.append(resultado)
+    resultado = consulta_cnpj(cnpj)
+    resultados.append(resultado)
 
-            processados += 1
+    processados += 1
 
-            if resultado.get("STATUS") == "OK":
-                sucesso += 1
-            else:
-                erro += 1
+    if resultado.get("STATUS") == "OK":
+        sucesso += 1
+    else:
+        erro += 1
 
-            tempo_decorrido = time.time() - inicio
-            tempo_medio = tempo_decorrido / processados
-            restante = total - processados
-            tempo_restante = restante * tempo_medio
+    tempo_decorrido = time.time() - inicio
+    tempo_medio = tempo_decorrido / processados
+    restante = total - processados
+    tempo_restante = restante * tempo_medio
 
-            percentual = (processados / total) * 100
+    percentual = (processados / total) * 100
 
-            print(
-                f"📊 {percentual:.2f}% | "
-                f"{processados}/{total} | "
-                f"✔ {sucesso} ❌ {erro} | "
-                f"⏱ Restante: {int(tempo_restante)}s"
-            )
+    print(
+        f"📊 {percentual:.2f}% | "
+        f"{processados}/{total} | "
+        f"✔ {sucesso} ❌ {erro} | "
+        f"⏱ Restante: {int(tempo_restante)}s"
+    )
+
+    # ⏳ Delay de 30 segundos entre chamadas
+    if processados < total:
+        print(f"⏳ Aguardando {DELAY} segundos...")
+        time.sleep(DELAY)
 
 # ==============================
 # SALVAR RESULTADOS
